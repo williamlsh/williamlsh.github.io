@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>How to Deploy Containerized Redis Replica - William&#39;s blog</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta itemprop="name" content="How to Deploy Containerized Redis Replica">
+<meta itemprop="description" content="In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
+ At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master.">
+<meta itemprop="datePublished" content="2020-08-01T22:27:37+08:00" />
+<meta itemprop="dateModified" content="2020-08-01T22:27:37+08:00" />
+<meta itemprop="wordCount" content="375">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="How to Deploy Containerized Redis Replica" />
+<meta property="og:description" content="In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
+ At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-replica/" />
+<meta property="article:published_time" content="2020-08-01T22:27:37+08:00" />
+<meta property="article:modified_time" content="2020-08-01T22:27:37+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="How to Deploy Containerized Redis Replica"/>
+<meta name="twitter:description" content="In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
+ At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master."/>
+<link href='https://fonts.googleapis.com/css?family=Playfair+Display:700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/normalize.css" />
+	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/main.css" />
+
+        <link id="dark-scheme" rel="stylesheet" type="text/css" href="https://williamlsh.github.io/css/dark.css" />
+
+	<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+		<script src="https://williamlsh.github.io/js/main.js"></script>
+</head>
+
+<body>
+	<div class="container wrapper">
+		<div class="header">
+	
+		<div class="avatar">
+			<a href="https://williamlsh.github.io/">
+				<img src="https://avatars1.githubusercontent.com/u/11584947?s=460&amp;u=b6509f718ee22c810eed175fb86bc6c149b1d2d1&amp;v=4" alt="William&#39;s blog" />
+			</a>
+		</div>
+	
+	<h1 class="site-title"><a href="https://williamlsh.github.io/">William&#39;s blog</a></h1>
+	<div class="site-description"><p>Crisp, minimal personal blog on software engineering</p><nav class="nav social">
+			<ul class="flat"><li><a href="https://github.com/williamlsh" title="Github"><i data-feather="github"></i></a></li><li><a href="/index.xml" title="RSS"><i data-feather="rss"></i></a></li></ul>
+		</nav><span class="scheme-toggle"><a href="#" id="scheme-toggle"></a></div>
+
+	<nav class="nav">
+		<ul class="flat">
+			
+			<li>
+				<a href="/">Home</a>
+			</li>
+			
+			<li>
+				<a href="/posts">Archive</a>
+			</li>
+			
+			<li>
+				<a href="/about">About</a>
+			</li>
+			
+		</ul>
+	</nav>
+</div>
+
+
+		<div class="post">
+			<div class="post-header">
+				
+					<div class="meta">
+						<div class="date">
+							<span class="day">01</span>
+							<span class="rest">Aug 2020</span>
+						</div>
+					</div>
+				
+				<div class="matter">
+					<h1 class="title">How to Deploy Containerized Redis Replica</h1>
+				</div>
+			</div>
+					
+			<div class="markdown">
+				<p>In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.</p>
+<blockquote>
+<p>At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master.</p>
+<p>&mdash; Quote from <a href="https://redis.io/topics/replication">Redis Replication Documentation</a></p>
+</blockquote>
+<h2 id="replication-with-two-redis-docker-containers">Replication with two Redis Docker containers</h2>
+<p>A simple master-slave replication model can be simply achieved with two Redis Docker containers. First, starting a Redis container as master role. Then, starting another one as slave role configured to follow the master. They are in the same default Docker bridge network.</p>
+<p>Run a Redis container at default port 6379, it will be master:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker run --rm -d --name master redis:alpine
+</code></pre></div><p>Run another Redis container with name slave, but in order to let it connect to master successfully, the slave must get the master&rsquo;s IP address first.</p>
+<p>Get master IP address:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export MASTER_IP=<span style="color:#00f">$(</span>sudo docker container inspect -f <span style="color:#a31515">&#39;{{.NetworkSettings.IPAddress}}&#39;</span> master<span style="color:#00f">)</span>
+</code></pre></div><p>Run slave following master with its IP address got before:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker run --rm -d --name slave redis:alpine redis-server --replicaof <span style="color:#a31515">${</span>MASTER_IP<span style="color:#a31515">}</span> 6379
+</code></pre></div><p>Now if you see the slave container logs, the last line will be:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo docker logs --tail 1 slave
+1:S 02 Aug 2020 05:03:19.313 * MASTER &lt;-&gt; REPLICA sync: Finished with success
+</code></pre></div><p>This should be done!</p>
+<h2 id="replication-with-docker-compose">Replication with Docker Compose</h2>
+<p>Instead of manually run containers one after another to build a replication, it will be much simpler to just define a <code>docker-compose.yml</code> and run with one command.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml"><span style="color:#00f">version</span>: <span style="color:#a31515">&#34;3.8&#34;</span>
+<span style="color:#00f">services</span>:
+  <span style="color:#00f">master</span>:
+    <span style="color:#00f">image</span>: redis:alpine
+    <span style="color:#00f">container_name</span>: master
+
+  <span style="color:#00f">slave</span>:
+    <span style="color:#00f">image</span>: redis:alpine
+    <span style="color:#00f">container_name</span>: slave
+    <span style="color:#00f">command</span>: redis-server --replicaof master 6379
+    <span style="color:#00f">depends_on</span>:
+      - master
+</code></pre></div><p>Run the replication:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker-compose up -d
+</code></pre></div><p>See if it starting succeeded:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo docker-compose logs --tail 1
+Attaching to slave, master
+master    | 1:M 02 Aug 2020 07:23:29.797 * Synchronization with replica 192.168.32.3:6379 succeeded
+slave     | 1:S 02 Aug 2020 07:23:29.798 * MASTER &lt;-&gt; REPLICA sync: Finished with success
+</code></pre></div><p>All done!</p>
+
+			</div>
+
+			<div class="tags">
+				
+					
+				
+			</div></div>
+	</div>
+	<div class="footer wrapper">
+	<nav class="nav">
+		<div>2020  Copyright © William |  <a href="https://github.com/knadh/hugo-ink">Ink</a> theme on <a href="https://gohugo.io">Hugo</a></div>
+	</nav>
+</div>
+
+<script>feather.replace()</script>
+</body>
+</html>

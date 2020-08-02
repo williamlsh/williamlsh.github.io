@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>William&#39;s blog</title>
-    <link>https://williamlsh.github.io/</link>
-    <description>Recent content on William&#39;s blog</description>
+    <title>Posts on William&#39;s blog</title>
+    <link>https://williamlsh.github.io/posts/</link>
+    <description>Recent content in Posts on William&#39;s blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Copyright © William</copyright>
     <lastBuildDate>Sat, 01 Aug 2020 22:27:37 +0800</lastBuildDate>
     
-	<atom:link href="https://williamlsh.github.io/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://williamlsh.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -20,15 +20,6 @@
       <guid>https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-replica/</guid>
       <description>In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
  At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master.</description>
-    </item>
-    
-    <item>
-      <title>About</title>
-      <link>https://williamlsh.github.io/about/</link>
-      <pubDate>Sat, 01 Aug 2020 21:02:49 +0800</pubDate>
-      
-      <guid>https://williamlsh.github.io/about/</guid>
-      <description>Focused on software engineering with Go, Rust and C.</description>
     </item>
     
   </channel>
