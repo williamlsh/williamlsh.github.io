@@ -10,7 +10,7 @@
  Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set.">
 <meta itemprop="datePublished" content="2020-08-03T11:27:59+08:00" />
 <meta itemprop="dateModified" content="2020-08-03T11:27:59+08:00" />
-<meta itemprop="wordCount" content="614">
+<meta itemprop="wordCount" content="613">
 
 
 
@@ -91,7 +91,7 @@
 			</div>
 					
 			<div class="markdown">
-				<p>In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on <a href="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-replica/">Redis Replication deployment</a> in the last post.</p>
+				<p>In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the <a href="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-replica/">last post</a>.</p>
 <blockquote>
 <p>Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.</p>
 <p>&mdash; Quote from <a href="https://redis.io/topics/sentinel">Redis Sentinel Documentation</a></p>
@@ -103,7 +103,6 @@
 to operate which the base image doesn&rsquo;t provide. This benefits us from easily scaling any sentinel services with one new image with the same configuration file.</p>
 <p>Pick a simple sentinel configuration file from Redis Document:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat sentinel.conf
-port 5000
 sentinel monitor mymaster master 6379 2
 sentinel down-after-milliseconds mymaster 5000
 sentinel failover-timeout mymaster 60000
@@ -117,7 +116,7 @@ sentinel parallel-syncs mymaster 1
 </span><span style="">
 </span><span style=""></span><span style="color:#00f">CMD</span> [ <span style="color:#a31515">&#34;redis-server&#34;</span> ]<span style="">
 </span></code></pre></div><h3 id="compose-replicas-and-sentinels">Compose Replicas and Sentinels</h3>
-<p>Now we have Sentinel image built, then we go on to compose replicas and sentinels together with Docker Compose.</p>
+<p>Now we have Sentinel image defined, then we go on to compose replicas and sentinels together with Docker Compose.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker-compose.yml" data-lang="docker-compose.yml"><span style="color:#00f">version</span>: <span style="color:#a31515">&#34;3.8&#34;</span>
 <span style="color:#00f">services</span>:
   <span style="color:#00f">master</span>:
@@ -147,7 +146,7 @@ sentinel_1  | 1:X 04 Aug 2020 03:25:34.682 * +sentinel sentinel 93996d7c6de6d4c6
 sentinel_2  | 1:X 04 Aug 2020 03:25:34.674 * +sentinel sentinel c32475d8b9babdbee419abab8aff127b7d5c2a89 192.168.176.8 5000 @ mymaster 192.168.176.2 6379
 </code></pre></div><p>you should see logs lines starting with words like <code>+monitor</code>, <code>+slave</code>, <code>+sentinel</code>, it means all roles in this distributed system are in place. So it&rsquo;s done!</p>
 <h3 id="testing-master-failover">Testing master failover</h3>
-<p>Before master failover testing, get the master address first which we can compare after failover:</p>
+<p>Before master failover testing, get the master address first which we can compare it after failover:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo docker-compose exec sentinel redis-cli -p 5000 SENTINEL get-master-addr-by-name mymaster
 1) <span style="color:#a31515">&#34;192.168.240.2&#34;</span>
 2) <span style="color:#a31515">&#34;6379&#34;</span>
@@ -160,7 +159,7 @@ sentinel_2  | 1:X 04 Aug 2020 03:25:34.674 * +sentinel sentinel c32475d8b9babdbe
 2) <span style="color:#a31515">&#34;6379&#34;</span>
 </code></pre></div><p>It&rsquo;s clear that the new master changed with its IP address from <code>192.168.240.2:6379</code> to <code>192.168.240.3:6379</code>.</p>
 <h2 id="conclusion">Conclusion</h2>
-<p>It&rsquo;s nice that this Redis Sentinel we deployed withstood the failover testing. The whole deployment code and scripts are available at my <a href="https://github.com/williamlsh/redis-sentinel">Github repository</a>. There you can use Makefile targets make the deployment and testing much more easier.</p>
+<p>It&rsquo;s nice that this Redis Sentinel we deployed withstood the failover testing. The whole deployment code and scripts are available at my <a href="https://github.com/williamlsh/redis-sentinel">Github repository</a>. There you can use Makefile targets making the deployment and testing much more easier.</p>
 
 			</div>
 
