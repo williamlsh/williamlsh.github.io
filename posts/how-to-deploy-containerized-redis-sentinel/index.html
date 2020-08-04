@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>How to Deploy Containerized Redis Sentinel - William&#39;s blog</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta itemprop="name" content="How to Deploy Containerized Redis Sentinel">
+<meta itemprop="description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the last post.
+ Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.
+&mdash; Quote from Redis Sentinel Documentation
+ Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set.">
+<meta itemprop="datePublished" content="2020-08-03T11:27:59+08:00" />
+<meta itemprop="dateModified" content="2020-08-03T11:27:59+08:00" />
+<meta itemprop="wordCount" content="614">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="How to Deploy Containerized Redis Sentinel" />
+<meta property="og:description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the last post.
+ Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.
+&mdash; Quote from Redis Sentinel Documentation
+ Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-sentinel/" />
+<meta property="article:published_time" content="2020-08-03T11:27:59+08:00" />
+<meta property="article:modified_time" content="2020-08-03T11:27:59+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="How to Deploy Containerized Redis Sentinel"/>
+<meta name="twitter:description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the last post.
+ Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.
+&mdash; Quote from Redis Sentinel Documentation
+ Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set."/>
+<link href='https://fonts.googleapis.com/css?family=Playfair+Display:700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/normalize.css" />
+	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/main.css" />
+
+        <link id="dark-scheme" rel="stylesheet" type="text/css" href="https://williamlsh.github.io/css/dark.css" />
+
+	<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+		<script src="https://williamlsh.github.io/js/main.js"></script>
+</head>
+
+<body>
+	<div class="container wrapper">
+		<div class="header">
+	
+		<div class="avatar">
+			<a href="https://williamlsh.github.io/">
+				<img src="https://avatars1.githubusercontent.com/u/11584947?s=460&amp;u=b6509f718ee22c810eed175fb86bc6c149b1d2d1&amp;v=4" alt="William&#39;s blog" />
+			</a>
+		</div>
+	
+	<h1 class="site-title"><a href="https://williamlsh.github.io/">William&#39;s blog</a></h1>
+	<div class="site-description"><p>Crisp, minimal personal blog on software engineering</p><nav class="nav social">
+			<ul class="flat"><li><a href="https://github.com/williamlsh" title="Github"><i data-feather="github"></i></a></li><li><a href="/index.xml" title="RSS"><i data-feather="rss"></i></a></li></ul>
+		</nav><span class="scheme-toggle"><a href="#" id="scheme-toggle"></a></div>
+
+	<nav class="nav">
+		<ul class="flat">
+			
+			<li>
+				<a href="/">Home</a>
+			</li>
+			
+			<li>
+				<a href="/posts">Archive</a>
+			</li>
+			
+			<li>
+				<a href="/about">About</a>
+			</li>
+			
+		</ul>
+	</nav>
+</div>
+
+
+		<div class="post">
+			<div class="post-header">
+				
+					<div class="meta">
+						<div class="date">
+							<span class="day">03</span>
+							<span class="rest">Aug 2020</span>
+						</div>
+					</div>
+				
+				<div class="matter">
+					<h1 class="title">How to Deploy Containerized Redis Sentinel</h1>
+				</div>
+			</div>
+					
+			<div class="markdown">
+				<p>In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on <a href="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-replica/">Redis Replication deployment</a> in the last post.</p>
+<blockquote>
+<p>Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.</p>
+<p>&mdash; Quote from <a href="https://redis.io/topics/sentinel">Redis Sentinel Documentation</a></p>
+</blockquote>
+<h2 id="sentinels-with-docker-compose">Sentinels with Docker Compose</h2>
+<p>We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set. Due to the isolation advantage of bridge network which Docker provides, it&rsquo;s trivial for us to utilize Docker Compose to deploy these distributed services without needing of managing ports mapping, but just keep the default settings. And Docker Compose scales well for replicas and sentinels services.</p>
+<h3 id="build-sentinel-docker-image">Build Sentinel Docker image</h3>
+<p>We are going to build an <a href="https://hub.docker.com/_/redis">official Redis image</a> based Sentinel image due to the special configuration file a sentinel needs
+to operate which the base image doesn&rsquo;t provide. This benefits us from easily scaling any sentinel services with one new image with the same configuration file.</p>
+<p>Pick a simple sentinel configuration file from Redis Document:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat sentinel.conf
+port 5000
+sentinel monitor mymaster master 6379 2
+sentinel down-after-milliseconds mymaster 5000
+sentinel failover-timeout mymaster 60000
+sentinel parallel-syncs mymaster 1
+</code></pre></div><p>Here <code>master</code> in line 2 is the Redis master host name which is necessary for name resolution inside Docker bridge network and will be used in Docker Compose service later.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#00f">FROM</span><span style="color:#a31515"> redis:alpine</span><span style="">
+</span><span style="">
+</span><span style=""></span><span style="color:#00f">COPY</span> sentinel.conf /usr/local/etc/redis/sentinel.conf<span style="">
+</span><span style="">
+</span><span style=""></span><span style="color:#00f">RUN</span> chown redis:redis /usr/local/etc/redis/sentinel.conf<span style="">
+</span><span style="">
+</span><span style=""></span><span style="color:#00f">CMD</span> [ <span style="color:#a31515">&#34;redis-server&#34;</span> ]<span style="">
+</span></code></pre></div><h3 id="compose-replicas-and-sentinels">Compose Replicas and Sentinels</h3>
+<p>Now we have Sentinel image built, then we go on to compose replicas and sentinels together with Docker Compose.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker-compose.yml" data-lang="docker-compose.yml"><span style="color:#00f">version</span>: <span style="color:#a31515">&#34;3.8&#34;</span>
+<span style="color:#00f">services</span>:
+  <span style="color:#00f">master</span>:
+    <span style="color:#00f">image</span>: redis:alpine
+    <span style="color:#00f">container_name</span>: master
+
+  <span style="color:#00f">slave</span>:
+    <span style="color:#00f">image</span>: redis:alpine
+    <span style="color:#00f">command</span>: redis-server --replicaof master 6379
+    <span style="color:#00f">depends_on</span>:
+      - master
+
+  <span style="color:#00f">sentinel</span>:
+    <span style="color:#00f">build</span>: .
+    <span style="color:#00f">command</span>: redis-server /usr/local/etc/redis/sentinel.conf --sentinel
+    <span style="color:#00f">depends_on</span>:
+      - master
+      - slave
+</code></pre></div><p>Compose up one master followed by 3 slaves and monitored by 3 sentinels:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo docker-compose up -d --scale slave=3 --scale sentinel=3
+......
+slave_1     | 1:S 04 Aug 2020 03:25:31.752 * MASTER &lt;-&gt; REPLICA sync: Finished with success
+slave_3     | 1:S 04 Aug 2020 03:25:31.452 * MASTER &lt;-&gt; REPLICA sync: Finished with success
+slave_2     | 1:S 04 Aug 2020 03:25:31.753 * MASTER &lt;-&gt; REPLICA sync: Finished with success
+sentinel_3  | 1:X 04 Aug 2020 03:25:34.682 * +sentinel sentinel 93996d7c6de6d4c629f1382e4bc5fd2c88c49883 192.168.176.7 5000 @ mymaster 192.168.176.2 6379
+sentinel_1  | 1:X 04 Aug 2020 03:25:34.682 * +sentinel sentinel 93996d7c6de6d4c629f1382e4bc5fd2c88c49883 192.168.176.7 5000 @ mymaster 192.168.176.2 6379
+sentinel_2  | 1:X 04 Aug 2020 03:25:34.674 * +sentinel sentinel c32475d8b9babdbee419abab8aff127b7d5c2a89 192.168.176.8 5000 @ mymaster 192.168.176.2 6379
+</code></pre></div><p>you should see logs lines starting with words like <code>+monitor</code>, <code>+slave</code>, <code>+sentinel</code>, it means all roles in this distributed system are in place. So it&rsquo;s done!</p>
+<h3 id="testing-master-failover">Testing master failover</h3>
+<p>Before master failover testing, get the master address first which we can compare after failover:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo docker-compose exec sentinel redis-cli -p 5000 SENTINEL get-master-addr-by-name mymaster
+1) <span style="color:#a31515">&#34;192.168.240.2&#34;</span>
+2) <span style="color:#a31515">&#34;6379&#34;</span>
+</code></pre></div><p>To see if this deployment is robust, we will give it a simple test by bringing down the Redis master and then recover it:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker-compose exec master redis-cli -p 6379 DEBUG sleep 30
+</code></pre></div><p>Logs were ignored because there are just two many, but you should see one failover log line prefixing with <code>+failover-end</code> following the new voted master address.</p>
+<p>Let&rsquo;s get the new master address:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo docker-compose exec sentinel redis-cli -p 5000 SENTINEL get-master-addr-by-name mymaster
+1) <span style="color:#a31515">&#34;192.168.240.3&#34;</span>
+2) <span style="color:#a31515">&#34;6379&#34;</span>
+</code></pre></div><p>It&rsquo;s clear that the new master changed with its IP address from <code>192.168.240.2:6379</code> to <code>192.168.240.3:6379</code>.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>It&rsquo;s nice that this Redis Sentinel we deployed withstood the failover testing. The whole deployment code and scripts are available at my <a href="https://github.com/williamlsh/redis-sentinel">Github repository</a>. There you can use Makefile targets make the deployment and testing much more easier.</p>
+
+			</div>
+
+			<div class="tags">
+				
+					
+				
+			</div></div>
+	</div>
+	<div class="footer wrapper">
+	<nav class="nav">
+		<div>2020  Copyright © William |  <a href="https://github.com/knadh/hugo-ink">Ink</a> theme on <a href="https://gohugo.io">Hugo</a></div>
+	</nav>
+</div>
+
+<script>feather.replace()</script>
+</body>
+</html>
