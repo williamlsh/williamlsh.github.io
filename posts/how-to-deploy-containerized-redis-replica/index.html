@@ -96,7 +96,7 @@
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker run --rm -d --name master redis:alpine
 </code></pre></div><p>Run another Redis container with name slave, but in order to let it connect to master successfully, the slave must get the master&rsquo;s IP address first.</p>
 <p>Get master IP address:</p>
-<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export MASTER_IP=<span style="color:#00f">$(</span>sudo docker container inspect -f <span style="color:#a31515">&#39;{{.NetworkSettings.IPAddress}}&#39;</span> master<span style="color:#00f">)</span>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export MASTER_IP=<span style="color:#00f">$(</span>sudo docker container inspect -f <span style="color:#a31515">&#39;{{.NetworkSettings.Networks.bridge.IPAddress}}&#39;</span> master<span style="color:#00f">)</span>
 </code></pre></div><p>Run slave following master with its IP address got before:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker run --rm -d --name slave redis:alpine redis-server --replicaof <span style="color:#a31515">${</span>MASTER_IP<span style="color:#a31515">}</span> 6379
 </code></pre></div><p>Now if you see the slave container logs, the last line will be:</p>
