@@ -4,32 +4,32 @@
 	<meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>How to Deploy Containerized Redis Sentinel - William&#39;s blog</title><meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta itemprop="name" content="How to Deploy Containerized Redis Sentinel">
-<meta itemprop="description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the last post.
+<meta itemprop="description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment described in the last post.
  Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.
 &mdash; Quote from Redis Sentinel Documentation
- Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set.">
+ Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set.">
 <meta itemprop="datePublished" content="2020-08-03T11:27:59+08:00" />
 <meta itemprop="dateModified" content="2020-08-03T11:27:59+08:00" />
-<meta itemprop="wordCount" content="613">
+<meta itemprop="wordCount" content="617">
 
 
 
 <meta itemprop="keywords" content="" />
 <meta property="og:title" content="How to Deploy Containerized Redis Sentinel" />
-<meta property="og:description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the last post.
+<meta property="og:description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment described in the last post.
  Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.
 &mdash; Quote from Redis Sentinel Documentation
- Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set." />
+ Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-sentinel/" />
 <meta property="article:published_time" content="2020-08-03T11:27:59+08:00" />
 <meta property="article:modified_time" content="2020-08-03T11:27:59+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="How to Deploy Containerized Redis Sentinel"/>
-<meta name="twitter:description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the last post.
+<meta name="twitter:description" content="In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment described in the last post.
  Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.
 &mdash; Quote from Redis Sentinel Documentation
- Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set."/>
+ Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set."/>
 <link href='https://fonts.googleapis.com/css?family=Playfair+Display:700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/normalize.css" />
 	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/main.css" />
@@ -91,16 +91,16 @@
 			</div>
 					
 			<div class="markdown">
-				<p>In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the <a href="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-replica/">last post</a>.</p>
+				<p>In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment described in the <a href="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-replica/">last post</a>.</p>
 <blockquote>
 <p>Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.</p>
 <p>&mdash; Quote from <a href="https://redis.io/topics/sentinel">Redis Sentinel Documentation</a></p>
 </blockquote>
 <h2 id="sentinels-with-docker-compose">Sentinels with Docker Compose</h2>
-<p>We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set. Due to the isolation advantage of bridge network which Docker provides, it&rsquo;s trivial for us to utilize Docker Compose to deploy these distributed services without needing of managing ports mapping, but just keep the default settings. And Docker Compose scales well for replicas and sentinels services.</p>
+<p>We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set. Due to the isolation advantage of bridge network which Docker provides, it&rsquo;s trivial for us to utilize Docker Compose to deploy these distributed services without needing of managing ports mapping, but just keep the default settings. And Docker Compose scales well for replicas and sentinels services.</p>
 <h3 id="build-sentinel-docker-image">Build Sentinel Docker image</h3>
 <p>We are going to build an <a href="https://hub.docker.com/_/redis">official Redis image</a> based Sentinel image due to the special configuration file a sentinel needs
-to operate which the base image doesn&rsquo;t provide. This benefits us from easily scaling any sentinel services with one new image with the same configuration file.</p>
+to operate which the base image doesn&rsquo;t provide. This benefits us from easily scaling any sentinel services with just one new image and with the same configuration file.</p>
 <p>Pick a simple sentinel configuration file from Redis Document:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat sentinel.conf
 sentinel monitor mymaster master 6379 2

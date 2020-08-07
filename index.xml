@@ -18,10 +18,10 @@
       <pubDate>Mon, 03 Aug 2020 11:27:59 +0800</pubDate>
       
       <guid>https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-sentinel/</guid>
-      <description>In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment in the last post.
+      <description>In this blog, I will illustrate Redis Sentinel deployment with Docker which will be based on Redis Replication deployment described in the last post.
  Redis Sentinel provides high availability for Redis. In practical terms this means that using Sentinel you can create a Redis deployment that resists without human intervention certain kinds of failures.
 &amp;mdash; Quote from Redis Sentinel Documentation
- Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus minimal replication set.</description>
+ Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set.</description>
     </item>
     
     <item>

@@ -8,7 +8,7 @@
  At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master.">
 <meta itemprop="datePublished" content="2020-08-01T22:27:37+08:00" />
 <meta itemprop="dateModified" content="2020-08-01T22:27:37+08:00" />
-<meta itemprop="wordCount" content="375">
+<meta itemprop="wordCount" content="373">
 
 
 
@@ -94,7 +94,7 @@
 <p>A simple master-slave replication model can be simply achieved with two Redis Docker containers. First, starting a Redis container as master role. Then, starting another one as slave role configured to follow the master. They are in the same default Docker bridge network.</p>
 <p>Run a Redis container at default port 6379, it will be master:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker run --rm -d --name master redis:alpine
-</code></pre></div><p>Run another Redis container with name slave, but in order to let it connect to master successfully, the slave must get the master&rsquo;s IP address first.</p>
+</code></pre></div><p>Run another Redis container with name slave, but in order to connect to master successfully, the slave must get the master&rsquo;s IP address first.</p>
 <p>Get master IP address:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">export MASTER_IP=<span style="color:#00f">$(</span>sudo docker container inspect -f <span style="color:#a31515">&#39;{{.NetworkSettings.Networks.bridge.IPAddress}}&#39;</span> master<span style="color:#00f">)</span>
 </code></pre></div><p>Run slave following master with its IP address got before:</p>
