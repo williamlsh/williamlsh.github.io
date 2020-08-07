@@ -10,7 +10,7 @@
  Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set.">
 <meta itemprop="datePublished" content="2020-08-03T11:27:59+08:00" />
 <meta itemprop="dateModified" content="2020-08-03T11:27:59+08:00" />
-<meta itemprop="wordCount" content="625">
+<meta itemprop="wordCount" content="623">
 
 
 
@@ -98,7 +98,7 @@
 </blockquote>
 <h2 id="sentinels-with-docker-compose">Sentinels with Docker Compose</h2>
 <p>We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set. Due to the isolation advantage of bridge network which Docker provides, it&rsquo;s trivial for us to utilize Docker Compose to deploy these distributed services without needing of managing ports mapping, but just keep the default settings. And Docker Compose scales well for replicas and sentinels services.</p>
-<h3 id="define-sentinel-docker-image">Define Sentinel Docker image</h3>
+<h3 id="defining-sentinel-docker-image">Defining Sentinel Docker image</h3>
 <p>We are going to define an <a href="https://hub.docker.com/_/redis">official Redis image</a> based Sentinel image due to the special configuration file a sentinel needs
 to operate which the base image doesn&rsquo;t provide and then build it with Docker Compose later. This benefits us from easily scaling any sentinel services with just one new image and with the same configuration file.</p>
 <p>Pick a simple sentinel configuration file from Redis Document:</p>
@@ -115,7 +115,7 @@ sentinel parallel-syncs mymaster 1
 </span><span style=""></span><span style="color:#00f">RUN</span> chown redis:redis /usr/local/etc/redis/sentinel.conf<span style="">
 </span><span style="">
 </span><span style=""></span><span style="color:#00f">CMD</span> [ <span style="color:#a31515">&#34;redis-server&#34;</span> ]<span style="">
-</span></code></pre></div><h3 id="compose-replicas-and-sentinels">Compose Replicas and Sentinels</h3>
+</span></code></pre></div><h3 id="composing-replicas-and-sentinels">Composing Replicas and Sentinels</h3>
 <p>Now we have Sentinel image defined, then we go on to compose replicas and sentinels together with Docker Compose.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker-compose.yml" data-lang="docker-compose.yml"><span style="color:#00f">version</span>: <span style="color:#a31515">&#34;3.8&#34;</span>
 <span style="color:#00f">services</span>:
@@ -145,12 +145,12 @@ sentinel_3  | 1:X 04 Aug 2020 03:25:34.682 * +sentinel sentinel 93996d7c6de6d4c6
 sentinel_1  | 1:X 04 Aug 2020 03:25:34.682 * +sentinel sentinel 93996d7c6de6d4c629f1382e4bc5fd2c88c49883 192.168.176.7 5000 @ mymaster 192.168.176.2 6379
 sentinel_2  | 1:X 04 Aug 2020 03:25:34.674 * +sentinel sentinel c32475d8b9babdbee419abab8aff127b7d5c2a89 192.168.176.8 5000 @ mymaster 192.168.176.2 6379
 </code></pre></div><p>you should see logs lines starting with words like <code>+monitor</code>, <code>+slave</code>, <code>+sentinel</code>, it means all roles in this distributed system are in place. So it&rsquo;s done!</p>
-<h3 id="testing-master-failover">Testing master failover</h3>
-<p>Before master failover testing, get the master address first which we can compare it after failover:</p>
+<h3 id="testing-the-failover">Testing the failover</h3>
+<p>Before the failover test, get master address first which we can compare it after failover:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo docker-compose exec sentinel redis-cli -p 5000 SENTINEL get-master-addr-by-name mymaster
 1) <span style="color:#a31515">&#34;192.168.240.2&#34;</span>
 2) <span style="color:#a31515">&#34;6379&#34;</span>
-</code></pre></div><p>To see if this deployment is robust, we will give it a simple test by bringing down the Redis master and then recover it:</p>
+</code></pre></div><p>To see if this deployment is robust, we will give it a simple test by crashing the Redis master and then recover it:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sudo docker-compose exec master redis-cli -p 6379 DEBUG sleep 30
 </code></pre></div><p>Logs were ignored because there are just two many, but you should see one failover log line prefixing with <code>+failover-end</code> following the new voted master address.</p>
 <p>Let&rsquo;s get the new master address:</p>
