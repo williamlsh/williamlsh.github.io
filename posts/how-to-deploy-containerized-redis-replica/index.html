@@ -4,7 +4,7 @@
 	<meta charset="utf-8" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>How to Deploy Containerized Redis Replica - William&#39;s blog</title><meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta itemprop="name" content="How to Deploy Containerized Redis Replica">
-<meta itemprop="description" content="In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
+<meta itemprop="description" content="In this post, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
  At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master.">
 <meta itemprop="datePublished" content="2020-08-01T22:27:37+08:00" />
 <meta itemprop="dateModified" content="2020-08-01T22:27:37+08:00" />
@@ -14,7 +14,7 @@
 
 <meta itemprop="keywords" content="" />
 <meta property="og:title" content="How to Deploy Containerized Redis Replica" />
-<meta property="og:description" content="In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
+<meta property="og:description" content="In this post, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
  At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-replica/" />
@@ -22,7 +22,7 @@
 <meta property="article:modified_time" content="2020-08-01T22:27:37+08:00" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="How to Deploy Containerized Redis Replica"/>
-<meta name="twitter:description" content="In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
+<meta name="twitter:description" content="In this post, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.
  At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master."/>
 <link href='https://fonts.googleapis.com/css?family=Playfair+Display:700' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/normalize.css" />
@@ -85,7 +85,7 @@
 			</div>
 					
 			<div class="markdown">
-				<p>In this blog, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.</p>
+				<p>In this post, I will illustrate Redis Replication deployment with Docker. Surely this could be the simplest solution against the simplest situation.</p>
 <blockquote>
 <p>At the base of Redis replication (excluding the high availability features provided as an additional layer by Redis Cluster or Redis Sentinel) there is a very simple to use and configure leader follower (master-slave) replication: it allows replica Redis instances to be exact copies of master instances. The replica will automatically reconnect to the master every time the link breaks, and will attempt to be an exact copy of it regardless of what happens to the master.</p>
 <p>&mdash; Quote from <a href="https://redis.io/topics/replication">Redis Replication Documentation</a></p>
