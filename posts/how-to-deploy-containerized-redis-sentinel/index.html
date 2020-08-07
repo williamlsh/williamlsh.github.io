@@ -10,7 +10,7 @@
  Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set.">
 <meta itemprop="datePublished" content="2020-08-03T11:27:59+08:00" />
 <meta itemprop="dateModified" content="2020-08-03T11:27:59+08:00" />
-<meta itemprop="wordCount" content="617">
+<meta itemprop="wordCount" content="625">
 
 
 
@@ -98,9 +98,9 @@
 </blockquote>
 <h2 id="sentinels-with-docker-compose">Sentinels with Docker Compose</h2>
 <p>We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set. Due to the isolation advantage of bridge network which Docker provides, it&rsquo;s trivial for us to utilize Docker Compose to deploy these distributed services without needing of managing ports mapping, but just keep the default settings. And Docker Compose scales well for replicas and sentinels services.</p>
-<h3 id="build-sentinel-docker-image">Build Sentinel Docker image</h3>
-<p>We are going to build an <a href="https://hub.docker.com/_/redis">official Redis image</a> based Sentinel image due to the special configuration file a sentinel needs
-to operate which the base image doesn&rsquo;t provide. This benefits us from easily scaling any sentinel services with just one new image and with the same configuration file.</p>
+<h3 id="define-sentinel-docker-image">Define Sentinel Docker image</h3>
+<p>We are going to define an <a href="https://hub.docker.com/_/redis">official Redis image</a> based Sentinel image due to the special configuration file a sentinel needs
+to operate which the base image doesn&rsquo;t provide and then build it with Docker Compose later. This benefits us from easily scaling any sentinel services with just one new image and with the same configuration file.</p>
 <p>Pick a simple sentinel configuration file from Redis Document:</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat sentinel.conf
 sentinel monitor mymaster master 6379 2
