@@ -7,10 +7,22 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>Copyright © William</copyright>
-    <lastBuildDate>Mon, 03 Aug 2020 11:27:59 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 06 Aug 2020 23:09:41 +0800</lastBuildDate>
     
 	<atom:link href="https://williamlsh.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>How to Deploy Containerized Redis Cluster</title>
+      <link>https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-cluster/</link>
+      <pubDate>Thu, 06 Aug 2020 23:09:41 +0800</pubDate>
+      
+      <guid>https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-cluster/</guid>
+      <description>In this post, I will illustrate Redis Cluster deployment with Docker. For that of Redis Sentinel deployment, please read my last post.
+ Redis Cluster provides a way to run a Redis installation where data is automatically sharded across multiple Redis nodes.
+&amp;mdash; Quote from Redis Cluster Tutorial
+ A short introduction While Redis Sentinel provides high availability, Redis Cluster provides high performance. Redis Cluster can be considered as large replica sets with elastic scalability without losing certain availability.</description>
+    </item>
     
     <item>
       <title>How to Deploy Containerized Redis Sentinel</title>

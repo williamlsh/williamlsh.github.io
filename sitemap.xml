@@ -3,17 +3,22 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-sentinel/</loc>
-    <lastmod>2020-08-03T11:27:59+08:00</lastmod>
+    <loc>https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-cluster/</loc>
+    <lastmod>2020-08-06T23:09:41+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://williamlsh.github.io/posts/</loc>
-    <lastmod>2020-08-03T11:27:59+08:00</lastmod>
+    <lastmod>2020-08-06T23:09:41+08:00</lastmod>
   </url>
   
   <url>
     <loc>https://williamlsh.github.io/</loc>
+    <lastmod>2020-08-06T23:09:41+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-sentinel/</loc>
     <lastmod>2020-08-03T11:27:59+08:00</lastmod>
   </url>
   

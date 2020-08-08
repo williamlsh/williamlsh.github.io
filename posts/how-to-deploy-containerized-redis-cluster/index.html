@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge"><title>How to Deploy Containerized Redis Cluster - William&#39;s blog</title><meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta itemprop="name" content="How to Deploy Containerized Redis Cluster">
+<meta itemprop="description" content="In this post, I will illustrate Redis Cluster deployment with Docker. For that of Redis Sentinel deployment, please read my last post.
+ Redis Cluster provides a way to run a Redis installation where data is automatically sharded across multiple Redis nodes.
+&mdash; Quote from Redis Cluster Tutorial
+ A short introduction While Redis Sentinel provides high availability, Redis Cluster provides high performance. Redis Cluster can be considered as large replica sets with elastic scalability without losing certain availability.">
+<meta itemprop="datePublished" content="2020-08-06T23:09:41+08:00" />
+<meta itemprop="dateModified" content="2020-08-06T23:09:41+08:00" />
+<meta itemprop="wordCount" content="1021">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta property="og:title" content="How to Deploy Containerized Redis Cluster" />
+<meta property="og:description" content="In this post, I will illustrate Redis Cluster deployment with Docker. For that of Redis Sentinel deployment, please read my last post.
+ Redis Cluster provides a way to run a Redis installation where data is automatically sharded across multiple Redis nodes.
+&mdash; Quote from Redis Cluster Tutorial
+ A short introduction While Redis Sentinel provides high availability, Redis Cluster provides high performance. Redis Cluster can be considered as large replica sets with elastic scalability without losing certain availability." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-cluster/" />
+<meta property="article:published_time" content="2020-08-06T23:09:41+08:00" />
+<meta property="article:modified_time" content="2020-08-06T23:09:41+08:00" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="How to Deploy Containerized Redis Cluster"/>
+<meta name="twitter:description" content="In this post, I will illustrate Redis Cluster deployment with Docker. For that of Redis Sentinel deployment, please read my last post.
+ Redis Cluster provides a way to run a Redis installation where data is automatically sharded across multiple Redis nodes.
+&mdash; Quote from Redis Cluster Tutorial
+ A short introduction While Redis Sentinel provides high availability, Redis Cluster provides high performance. Redis Cluster can be considered as large replica sets with elastic scalability without losing certain availability."/>
+<link href='https://fonts.googleapis.com/css?family=Playfair+Display:700' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/normalize.css" />
+	<link rel="stylesheet" type="text/css" media="screen" href="https://williamlsh.github.io/css/main.css" />
+
+        <link id="dark-scheme" rel="stylesheet" type="text/css" href="https://williamlsh.github.io/css/dark.css" />
+
+	<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+		<script src="https://williamlsh.github.io/js/main.js"></script>
+</head>
+
+<body>
+	<div class="container wrapper">
+		<div class="header">
+	
+		<div class="avatar">
+			<a href="https://williamlsh.github.io/">
+				<img src="https://avatars1.githubusercontent.com/u/11584947?s=460&amp;u=b6509f718ee22c810eed175fb86bc6c149b1d2d1&amp;v=4" alt="William&#39;s blog" />
+			</a>
+		</div>
+	
+	<h1 class="site-title"><a href="https://williamlsh.github.io/">William&#39;s blog</a></h1>
+	<div class="site-description"><p>Crisp, minimal personal blog on software engineering</p><nav class="nav social">
+			<ul class="flat"><li><a href="https://github.com/williamlsh" title="Github"><i data-feather="github"></i></a></li><li><a href="/index.xml" title="RSS"><i data-feather="rss"></i></a></li></ul>
+		</nav><span class="scheme-toggle"><a href="#" id="scheme-toggle"></a></div>
+
+	<nav class="nav">
+		<ul class="flat">
+			
+			<li>
+				<a href="/">Home</a>
+			</li>
+			
+			<li>
+				<a href="/posts">Archive</a>
+			</li>
+			
+			<li>
+				<a href="/about">About</a>
+			</li>
+			
+		</ul>
+	</nav>
+</div>
+
+
+		<div class="post">
+			<div class="post-header">
+				
+					<div class="meta">
+						<div class="date">
+							<span class="day">06</span>
+							<span class="rest">Aug 2020</span>
+						</div>
+					</div>
+				
+				<div class="matter">
+					<h1 class="title">How to Deploy Containerized Redis Cluster</h1>
+				</div>
+			</div>
+					
+			<div class="markdown">
+				<p>In this post, I will illustrate Redis Cluster deployment with Docker. For that of Redis Sentinel deployment, please read my <a href="https://williamlsh.github.io/posts/how-to-deploy-containerized-redis-sentinel/">last post</a>.</p>
+<blockquote>
+<p>Redis Cluster provides a way to run a Redis installation where data is <strong>automatically sharded across multiple Redis nodes</strong>.</p>
+<p>&mdash; Quote from <a href="https://redis.io/topics/cluster-tutorial">Redis Cluster Tutorial</a></p>
+</blockquote>
+<h2 id="a-short-introduction">A short introduction</h2>
+<p>While Redis Sentinel provides high availability, Redis Cluster provides high performance. Redis Cluster can be considered as large replica sets with elastic scalability without losing certain availability.</p>
+<p>A Redis Cluster node requires two TCP connection ports opened, and here we will use default 6379 along with 16379 ports for normal port and cluster bus port connections respectively for simplicity&rsquo;s sake in Docker bridge network.</p>
+<p>Docker Compose is still the primary option for creating a Redis cluster in development environment with which we can easily scale desirable numbers of cluster nodes with the simple same Redis service definition.</p>
+<h2 id="defining-docker-image-for-redis-cluster-node">Defining Docker image for Redis Cluster node</h2>
+<p>First, we define an <a href="https://hub.docker.com/_/redis">official Redis image</a> based new image by adding a new configuration file which enables Redis cluster mode:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-Dockerfile" data-lang="Dockerfile"><span style="color:#00f">FROM</span><span style="color:#a31515"> redis:alpine</span><span style="">
+</span><span style="">
+</span><span style=""></span><span style="color:#00f">COPY</span> redis.conf /usr/local/etc/redis/redis.conf<span style="">
+</span><span style="">
+</span><span style=""></span><span style="color:#00f">RUN</span> chown redis:redis /usr/local/etc/redis/redis.conf<span style="">
+</span><span style="">
+</span><span style=""></span><span style="color:#00f">CMD</span> [ <span style="color:#a31515">&#34;redis-server&#34;</span> ]<span style="">
+</span></code></pre></div><p>Where the <code>redis.conf</code> is:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat redis.conf
+cluster-enabled yes
+cluster-config-file nodes.conf
+cluster-node-timeout 5000
+appendonly yes
+</code></pre></div><h2 id="composing-empty-redis-services">Composing empty Redis services</h2>
+<p>Redis cluster starts from empty instances in cluster mode. The following is our <code>docker-compose.yml</code> definition whose service starting from building the predefined Redis image in precious step:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker-compose.yml" data-lang="docker-compose.yml"><span style="color:#00f">version</span>: <span style="color:#a31515">&#34;3.8&#34;</span>
+<span style="color:#00f">services</span>:
+  <span style="color:#00f">node</span>:
+    <span style="color:#00f">build</span>: .
+    <span style="color:#00f">command</span>: redis-server /usr/local/etc/redis/redis.conf
+</code></pre></div><p>Let&rsquo;s rise up 6 empty instances:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker-compose up -d --scale node=6
+</code></pre></div><h2 id="creating-the-cluster">Creating the cluster</h2>
+<p>The minimal cluster requires at least 3 master nodes. So here we are going to start a 6 nodes cluster with 3 masters and 3 slaves. This is why we rose up 6 nodes in previous step.</p>
+<blockquote>
+<p>Something to note here: the Redis cluster <code>create</code> command only accepts nodes IP addresses, and can&rsquo;t by their hostnames of which the name resolution Docker supports.</p>
+</blockquote>
+<p>Create new cluster with <code>redis-cli</code> by connecting to any running Redis node and write the configuration to all nodes with the following script:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat cluster.sh
+<span style="color:#008000">#!/usr/bin/env bash</span>
+
+PORT=<span style="color:#a31515">&#34;6379&#34;</span>
+ADDRS=<span style="color:#a31515">&#34;&#34;</span>
+
+<span style="color:#00f">function</span> containersAddrs() {
+    stdbuf -oL docker network inspect redis-cluster_default -f <span style="color:#a31515">\
+</span><span style="color:#a31515"></span>        <span style="color:#a31515">&#39;{{range $element := .Containers}}
+</span><span style="color:#a31515">            {{$element.IPv4Address}}
+</span><span style="color:#a31515">        {{end}}&#39;</span>
+}
+
+<span style="color:#00f">while</span> IFS= read -r line; <span style="color:#00f">do</span>
+    <span style="color:#00f">if</span> [ ! -z <span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>line// /<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span> ]; <span style="color:#00f">then</span>
+        addr=<span style="color:#a31515">&#34;</span><span style="color:#00f">$(</span>echo -e <span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>line<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span> | tr -d <span style="color:#a31515">&#39;[:space:]&#39;</span> | rev | cut -c 4- | rev<span style="color:#00f">)</span><span style="color:#a31515">:</span><span style="color:#a31515">${</span>PORT<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span>
+        [ -z <span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>ADDRS<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span> ] &amp;&amp; ADDRS+=<span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>addr<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span> || ADDRS+=<span style="color:#a31515">&#34; </span><span style="color:#a31515">${</span>addr<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span>
+    <span style="color:#00f">fi</span>
+<span style="color:#00f">done</span> &lt;&lt;&lt;<span style="color:#a31515">&#34;</span><span style="color:#00f">$(</span>containersAddrs<span style="color:#00f">)</span><span style="color:#a31515">&#34;</span>
+
+docker exec -it redis-cluster_node_1 redis-cli <span style="color:#a31515">\
+</span><span style="color:#a31515"></span>    --cluster create <span style="color:#a31515">\
+</span><span style="color:#a31515"></span>    <span style="color:#a31515">${</span>ADDRS<span style="color:#a31515">}</span> <span style="color:#a31515">\
+</span><span style="color:#a31515"></span>    --cluster-replicas 1
+</code></pre></div><p>Run the above script, you should see a successful hash slot allocation with details which means the cluster configuration was well done. This script automatically joins all nodes into one cluster, you can also do it manually: first get all nodes IP addresses, then execute <code>create</code> command with these IP addresses in a <code>redis-cli</code> specifying cluster mode as it does in the script.</p>
+<h2 id="testing-the-failover">Testing the failover</h2>
+<p>There are two ways to test the failover.</p>
+<p>The first way is by executing <code>DEBUG SEGFAULT</code> in any master node, then the master role of this node will be transferred to its following slave node. Thus after this node recovers, they exchange their roles.</p>
+<p>The second way is called manual failover which uses the <code>CLUSTER FAILOVER</code> command executed in one of the slaves of master we want to failover. That also switches roles of each other.</p>
+<p>We can achieve both ways of failover with the following script:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat failover.sh
+<span style="color:#008000">#!/usr/bin/env bash</span>
+
+<span style="color:#00f">function</span> redisCli() {
+    docker-compose exec node redis-cli -c <span style="color:#a31515">&#34;</span>$@<span style="color:#a31515">&#34;</span>
+}
+
+<span style="color:#00f">function</span> terminateMaster() {
+    redisCli DEBUG SEGFAULT &gt;/dev/null 2&gt;&amp;1
+    sleep 10
+    docker-compose start node
+}
+
+<span style="color:#00f">function</span> main() {
+    local role
+    role=<span style="color:#00f">$(</span>redisCli role<span style="color:#00f">)</span>
+    echo <span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>role<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span>
+
+    read -r line &lt;&lt;&lt;<span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>role<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span>
+
+    <span style="color:#00f">case</span> <span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>line<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span> in
+    *<span style="color:#a31515">&#34;master&#34;</span>*)
+        echo <span style="color:#a31515">&#34;Failover by terminating master&#34;</span>
+        terminateMaster
+        ;;
+    *<span style="color:#a31515">&#34;slave&#34;</span>*)
+        echo <span style="color:#a31515">&#34;Manual failover to slave&#34;</span>
+        redisCli CLUSTER FAILOVER &gt;/dev/null 2&gt;&amp;1
+        ;;
+    *)
+        echo <span style="color:#a31515">&#34;Unkonwn role&#34;</span>
+        exit 1
+        ;;
+    <span style="color:#00f">esac</span>
+}
+
+main || exit 1
+</code></pre></div><p>This script tests failover by the first way if the role of connected node we are executing in is master else the second way without execution limits. After the failover, the new master holds the same exact number of hash slots as their previous owner.</p>
+<h2 id="adding-new-node">Adding new node</h2>
+<blockquote>
+<p>Adding a new node is basically the process of adding an empty node and then moving some data into it, in case it is a new master, or telling it to setup as a replica of a known node, in case it is a slave.</p>
+<p>&mdash; Quote from <a href="https://redis.io/topics/cluster-tutorial">Redis Cluster Tutorial</a></p>
+</blockquote>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat add-node.sh
+<span style="color:#008000">#!/usr/bin/env bash</span>
+
+set -eou pipefail
+
+PORT=<span style="color:#a31515">&#34;6379&#34;</span>
+
+<span style="color:#00f">function</span> newNodeAddr() {
+    docker container inspect -f <span style="color:#a31515">\
+</span><span style="color:#a31515"></span>        <span style="color:#a31515">&#39;{{index .NetworkSettings.Networks &#34;redis-cluster_default&#34; &#34;IPAddress&#34;}}&#39;</span> <span style="color:#a31515">\
+</span><span style="color:#a31515"></span>        <span style="color:#a31515">&#34;</span>$@<span style="color:#a31515">&#34;</span>
+}
+
+<span style="color:#00f">function</span> addNode() {
+    local args
+    args=<span style="color:#a31515">&#34;--cluster add-node </span>$1<span style="color:#a31515"> </span>$2<span style="color:#a31515">&#34;</span>
+
+    [ <span style="color:#a31515">&#34;</span>$3<span style="color:#a31515">&#34;</span> = <span style="color:#a31515">&#34;slave&#34;</span> ] &amp;&amp; args+=<span style="color:#a31515">&#34; --cluster-slave&#34;</span>
+
+    docker-compose exec node redis-cli <span style="color:#a31515">${</span>args<span style="color:#a31515">}</span>
+}
+
+<span style="color:#00f">function</span> main() {
+    <span style="color:#008000"># Scale up one node.</span>
+    docker-compose up -d --scale node=7
+
+    <span style="color:#008000"># Get address of new node.</span>
+    local new_node_addr
+    local old_node_addr
+    new_node_addr=<span style="color:#00f">$(</span>newNodeAddr redis-cluster_node_7<span style="color:#00f">)</span>
+    <span style="color:#008000"># Get address of an old node.</span>
+    old_node_addr=<span style="color:#00f">$(</span>newNodeAddr redis-cluster_node_1<span style="color:#00f">)</span>
+
+    <span style="color:#008000"># Add new node to cluster. It&#39;s role can be either master or slave depends on the last argument.</span>
+    addNode <span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>new_node_addr<span style="color:#a31515">}</span><span style="color:#a31515">:</span><span style="color:#a31515">${</span>PORT<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span> <span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>old_node_addr<span style="color:#a31515">}</span><span style="color:#a31515">:</span><span style="color:#a31515">${</span>PORT<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span> <span style="color:#a31515">&#34;</span>$1<span style="color:#a31515">&#34;</span>
+
+    <span style="color:#008000"># Manually reshard if new node is master.</span>
+    [ <span style="color:#a31515">&#34;</span>$1<span style="color:#a31515">&#34;</span> = <span style="color:#a31515">&#34;master&#34;</span> ] &amp;&amp; docker-compose exec node redis-cli --cluster reshard redis-cluster_node_1:<span style="color:#a31515">&#34;</span><span style="color:#a31515">${</span>PORT<span style="color:#a31515">}</span><span style="color:#a31515">&#34;</span> || exit 0
+}
+
+main <span style="color:#a31515">&#34;</span>$1<span style="color:#a31515">&#34;</span> || exit 1
+</code></pre></div><p>Using the above script to add a new node. The script executes with one argument, <code>master</code> for adding master node and <code>slave</code> for adding salve node.</p>
+<p>To add a salve node:</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo ./add-node.sh slave
+...
+[OK] New node added correctly.
+</code></pre></div><p>Adding a new master node is a bit complex as a resharding of hash slots is needed for for all master nodes. Thus executing the following script to add new master will prompt interactive options to allocate hash slots, including number of hash slots for new master and their sources.</p>
+<div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ sudo ./add-node.sh master
+...
+[OK] New node added correctly.
+</code></pre></div><h2 id="conclusion">Conclusion</h2>
+<p>So far, we have gone through the most common and detailed steps to deploy and test containerized Redis Cluster with Docker Compose and without hassle. All scripts and code in this post can be found in my <a href="https://github.com/williamlsh/redis-cluster">Github repository</a>.</p>
+
+			</div>
+
+			<div class="tags">
+				
+					
+				
+			</div></div>
+	</div>
+	<div class="footer wrapper">
+	<nav class="nav">
+		<div>2020  Copyright © William |  <a href="https://github.com/knadh/hugo-ink">Ink</a> theme on <a href="https://gohugo.io">Hugo</a></div>
+	</nav>
+</div>
+
+<script>feather.replace()</script>
+</body>
+</html>
