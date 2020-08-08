@@ -10,7 +10,7 @@
  Sentinels with Docker Compose We will need at least three Sentinel instances for the minimal deployment requirement plus a minimal replication set.">
 <meta itemprop="datePublished" content="2020-08-03T11:27:59+08:00" />
 <meta itemprop="dateModified" content="2020-08-03T11:27:59+08:00" />
-<meta itemprop="wordCount" content="623">
+<meta itemprop="wordCount" content="634">
 
 
 
@@ -116,7 +116,7 @@ sentinel parallel-syncs mymaster 1
 </span><span style="">
 </span><span style=""></span><span style="color:#00f">CMD</span> [ <span style="color:#a31515">&#34;redis-server&#34;</span> ]<span style="">
 </span></code></pre></div><h3 id="composing-replicas-and-sentinels">Composing Replicas and Sentinels</h3>
-<p>Now we have Sentinel image defined, then we go on to compose replicas and sentinels together with Docker Compose.</p>
+<p>Now we have Sentinel image defined which will be used to build local image for sentinel service, then we go on to compose replicas and sentinels together with Docker Compose.</p>
 <div class="highlight"><pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-docker-compose.yml" data-lang="docker-compose.yml"><span style="color:#00f">version</span>: <span style="color:#a31515">&#34;3.8&#34;</span>
 <span style="color:#00f">services</span>:
   <span style="color:#00f">master</span>:
